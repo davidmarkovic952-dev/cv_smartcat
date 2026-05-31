@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>David Marković — AI Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #080810;
+  --surface: #0e0e1a;
+  --surface2: #13131f;
+  --border: rgba(255,255,255,0.06);
+  --border-bright: rgba(255,255,255,0.12);
+  --text: #e8e8f0;
+  --text-mid: #8888a8;
+  --text-dim: #44445a;
+  --accent: #7b6cff;
+  --accent2: #ff6c9d;
+  --accent3: #6cffd4;
+  --accent-glow: rgba(123,108,255,0.15);
+  --mono: 'DM Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── GRID LINES ── */
+.grid-lines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.grid-lines::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(123,108,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123,108,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ── GLOW ORBS ── */
+.orb {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(80px);
+  z-index: 0;
+}
+.orb-1 {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(123,108,255,0.12) 0%, transparent 70%);
+  top: -100px; left: -100px;
+  animation: orbFloat 12s ease-in-out infinite;
+}
+.orb-2 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,108,157,0.08) 0%, transparent 70%);
+  bottom: 20%; right: -100px;
+  animation: orbFloat 15s ease-in-out infinite reverse;
+}
+.orb-3 {
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(108,255,212,0.06) 0%, transparent 70%);
+  top: 50%; left: 40%;
+  animation: orbFloat 18s ease-in-out infinite 3s;
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(30px, -40px); }
+  66% { transform: translate(-20px, 20px); }
+}
+
+/* ── WRAPPER ── */
+.wrapper {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 80px 40px 120px;
+}
+
+/* ── HERO ── */
+.hero {
+  margin-bottom: 80px;
+  opacity: 0;
+  animation: fadeUp 0.8s ease 0.2s forwards;
+}
+
+.hero-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-label::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+}
+
+.hero-name {
+  font-family: var(--display);
+  font-size: clamp(52px, 8vw, 88px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -2px;
+  color: #fff;
+  margin-bottom: 24px;
+}
+
+.hero-name .line-2 {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+}
+
+.hero-tagline {
+  font-size: 16px;
+  color: var(--text-mid);
+  max-width: 480px;
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  border: 1px solid var(--border-bright);
+  color: var(--text-mid);
+  letter-spacing: 1px;
+  background: var(--surface);
+  transition: all 0.2s ease;
+}
+.chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+.chip a {
+  color: inherit;
+  text-decoration: none;
+}
+.chip-accent {
+  border-color: rgba(123,108,255,0.4);
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 64px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease forwards;
+}
+.section:nth-child(2) { animation-delay: 0.3s; }
+.section:nth-child(3) { animation-delay: 0.4s; }
+.section:nth-child(4) { animation-delay: 0.5s; }
+.section:nth-child(5) { animation-delay: 0.6s; }
+.section:nth-child(6) { animation-delay: 0.7s; }
+.section:nth-child(7) { animation-delay: 0.8s; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── SKILLS ── */
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.skill-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 24px;
+  transition: border-color 0.3s ease;
+}
+.skill-group:hover { border-color: var(--border-bright); }
+
+.skill-group-title {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skill-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 9px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+}
+
+.skill-tag.hot {
+  border-color: rgba(123,108,255,0.3);
+  color: var(--accent);
+  background: rgba(123,108,255,0.07);
+}
+
+/* ── PROJECTS ── */
+.projects-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.project-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+}
+.project-card:hover::before { transform: scaleX(1); }
+
+.project-card.featured {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.project-index {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+.project-name {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.project-desc {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.project-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.stack-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.project-link {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent3);
+  text-decoration: none;
+  letter-spacing: 1px;
+  margin-top: 12px;
+  display: inline-block;
+}
+.project-link:hover { text-decoration: underline; }
+
+/* ── EXPERIENCE ── */
+.exp-item {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0 32px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.exp-item:first-child { padding-top: 0; }
+.exp-item:last-child { border-bottom: none; }
+
+.exp-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  padding-top: 3px;
+}
+
+.exp-role {
+  font-family: var(--display);
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: -0.3px;
+}
+
+.exp-company {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.exp-bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exp-bullets li {
+  font-size: 13px;
+  color: var(--text-mid);
+  padding-left: 16px;
+  position: relative;
+}
+.exp-bullets li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  top: 2px;
+}
+
+/* ── STAT BAR ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 64px;
+}
+
+.stat-box {
+  background: var(--surface);
+  padding: 24px 20px;
+  text-align: center;
+  transition: background 0.2s;
+}
+.stat-box:hover { background: var(--surface2); }
+
+.stat-num {
+  font-family: var(--display);
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-num span { color: var(--accent); }
+
+.stat-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* ── TERMINAL BLOCK ── */
+.terminal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-bottom: 64px;
+  overflow: hidden;
+}
+
+.terminal-bar {
+  background: var(--surface2);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+.terminal-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 8px;
+}
+
+.terminal-body {
+  padding: 24px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 2;
+}
+
+.t-line { display: flex; gap: 12px; }
+.t-prompt { color: var(--accent); user-select: none; }
+.t-cmd { color: var(--text); }
+.t-out { color: var(--text-mid); padding-left: 24px; }
+.t-accent { color: var(--accent3); }
+.t-pink { color: var(--accent2); }
+.t-cursor {
+  display: inline-block;
+  width: 8px; height: 14px;
+  background: var(--accent);
+  vertical-align: middle;
+  animation: blink 1.2s step-end infinite;
+  margin-left: 4px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── LANGUAGES ── */
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.lang-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+}
+
+.lang-name {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.lang-level {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.lang-bar {
+  height: 2px;
+  background: var(--border);
+  margin-top: 10px;
+  overflow: hidden;
+}
+.lang-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  animation: barGrow 1.2s cubic-bezier(0.4,0,0.2,1) 0.8s both;
+  transform-origin: left;
+}
+
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ── FOOTER CTA ── */
+.footer-cta {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 40px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(123,108,255,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.footer-cta-title {
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+
+.footer-cta-sub {
+  font-size: 14px;
+  color: var(--text-mid);
+  margin-bottom: 24px;
+}
+
+.cta-btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.cta-btn:hover {
+  background: #6a5bee;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 30px rgba(123,108,255,0.3);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 700px) {
+  .wrapper { padding: 48px 24px 80px; }
+  .skills-grid, .projects-grid, .lang-grid { grid-template-columns: 1fr; }
+  .project-card.featured { grid-column: 1; grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .exp-item { grid-template-columns: 1fr; gap: 4px; }
+  .hero-name { font-size: 44px; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-lines"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrapper">
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <div class="hero-label">Available for hire · AI Engineer</div>
+    <h1 class="hero-name">
+      David<br>
+      <span class="line-2">Marković</span>
+    </h1>
+    <p class="hero-tagline">
+      I build AI-powered tools that create real business impact — fast. 
+      Claude API, n8n automation, and vibe coding are my daily toolkit.
+    </p>
+    <div class="hero-meta">
+      <span class="chip chip-accent">AI Tooling</span>
+      <span class="chip chip-accent">LLM Integration</span>
+      <span class="chip chip-accent">Automation</span>
+      <span class="chip">React + Vite</span>
+      <span class="chip">Node.js</span>
+      <span class="chip">Python</span>
+      <span class="chip"><a href="mailto:david@provento.solutions">david@provento.solutions</a></span>
+      <span class="chip"><a href="https://github.com/davidmarkovic952-dev" target="_blank">GitHub ↗</a></span>
+    </div>
+  </header>
+
+  <!-- ── STATS ── -->
+  <div class="stats-row section">
+    <div class="stat-box">
+      <div class="stat-num">5<span>+</span></div>
+      <div class="stat-label">AI Projects Shipped</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">3<span>+</span></div>
+      <div class="stat-label">Live Deployments</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">4<span>×</span></div>
+      <div class="stat-label">Languages</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Curiosity</div>
+    </div>
+  </div>
+
+  <!-- ── TERMINAL ── -->
+  <div class="terminal section">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <span class="terminal-title">david@provento ~ why-hire-me.sh</span>
+    </div>
+    <div class="terminal-body">
+      <div class="t-line"><span class="t-prompt">❯</span><span class="t-cmd">whoami</span></div>
+      <div class="t-out">AI-native developer · Velenje, Slovenia · Remote-first</div>
+      <div class="t-line"><span class="t-prompt">❯</span><span class="t-cmd">cat ./core-tools.txt</span></div>
+      <div class="t-out"><span class="t-accent">Claude API</span> · n8n · React · Node.js · Python · PostgreSQL</div>
+      <div class="t-line"><span class="t-prompt">❯</span><span class="t-cmd">git log --oneline --recent</span></div>
+      <div class="t-out"><span class="t-pink">a1b2c3d</span> Built CVBoost — AI CV analyzer using Claude API</div>
+      <div class="t-out"><span class="t-pink">e4f5a6b</span> Shipped RecruitLens — AI resume screener with fit scoring</div>
+      <div class="t-out"><span class="t-pink">7c8d9e0</span> Deployed ZAPOSLENIK.AI SaaS landing + lead funnel</div>
+      <div class="t-out"><span class="t-pink">f1a2b3c</span> Built n8n automation pipelines + Telegram bot integrations</div>
+      <div class="t-line"><span class="t-prompt">❯</span><span class="t-cmd">echo $SUPERPOWER</span></div>
+      <div class="t-out">Turn vague business problem → working AI tool in days, not weeks<span class="t-cursor"></span></div>
+    </div>
+  </div>
+
+  <!-- ── AI PROJECTS ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">AI Projects</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="projects-grid">
+
+      <div class="project-card featured">
+        <div>
+          <div class="project-index">01 · Featured</div>
+          <div class="project-name">CVBoost</div>
+          <p class="project-desc">AI-powered CV analyzer that compares resumes against job descriptions and returns structured, actionable feedback. Built with Claude API, deployed on GitHub Pages. Demonstrates real LLM integration and prompt engineering in production.</p>
+          <a class="project-link" href="https://davidmarkovic952-dev.github.io/cvboost/" target="_blank">davidmarkovic952-dev.github.io/cvboost ↗</a>
+        </div>
+        <div>
+          <div class="project-stack" style="margin-bottom:16px;">
+            <span class="stack-tag" style="border-color:rgba(123,108,255,0.4);color:var(--accent);">Claude API</span>
+            <span class="stack-tag">HTML</span>
+            <span class="stack-tag">JavaScript</span>
+            <span class="stack-tag">CSS</span>
+            <span class="stack-tag">GitHub Pages</span>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);padding:16px;font-family:var(--mono);font-size:12px;color:var(--text-mid);line-height:1.8;">
+            <div>→ Prompt engineering</div>
+            <div>→ Structured output parsing</div>
+            <div>→ Multi-field CV analysis</div>
+            <div>→ Live deployment</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-index">02</div>
+        <div class="project-name">RecruitLens</div>
+        <p class="project-desc">AI resume screener that scores multiple candidates against a job description. Structured fit scoring with reasoning. Built for AI-native HR workflows.</p>
+        <div class="project-stack">
+          <span class="stack-tag" style="border-color:rgba(123,108,255,0.4);color:var(--accent);">Claude API</span>
+          <span class="stack-tag">React</span>
+          <span class="stack-tag">Vite</span>
+          <span class="stack-tag">Node.js</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-index">03</div>
+        <div class="project-name">n8n Automation Suite</div>
+        <p class="project-desc">Workflow automation pipelines using n8n — Telegram bot integrations, webhook handlers, AI-assisted data processing and notification systems.</p>
+        <div class="project-stack">
+          <span class="stack-tag" style="border-color:rgba(108,255,212,0.4);color:var(--accent3);">n8n</span>
+          <span class="stack-tag">Telegram API</span>
+          <span class="stack-tag">Webhooks</span>
+          <span class="stack-tag">JSON</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-index">04</div>
+        <div class="project-name">ZAPOSLENIK.AI</div>
+        <p class="project-desc">AI automation SaaS landing page with interactive lead capture quiz funnel. EmailJS integration for automated lead routing. Business-facing AI product demo.</p>
+        <div class="project-stack">
+          <span class="stack-tag">HTML</span>
+          <span class="stack-tag">CSS</span>
+          <span class="stack-tag">EmailJS</span>
+          <span class="stack-tag">GitHub Pages</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── SKILLS ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Skills</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="skills-grid">
+      <div class="skill-group">
+        <div class="skill-group-title">AI & Automation</div>
+        <div class="skill-tags">
+          <span class="skill-tag hot">Claude API</span>
+          <span class="skill-tag hot">Prompt Engineering</span>
+          <span class="skill-tag hot">n8n</span>
+          <span class="skill-tag hot">LLM Integration</span>
+          <span class="skill-tag hot">Vibe Coding</span>
+          <span class="skill-tag">OpenAI API</span>
+          <span class="skill-tag">RAG (learning)</span>
+          <span class="skill-tag">AI Agents</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <div class="skill-group-title">Frontend</div>
+        <div class="skill-tags">
+          <span class="skill-tag hot">React + Vite</span>
+          <span class="skill-tag hot">JavaScript ES6+</span>
+          <span class="skill-tag hot">HTML5 / CSS3</span>
+          <span class="skill-tag">GSAP</span>
+          <span class="skill-tag">Figma</span>
+          <span class="skill-tag">Responsive Design</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <div class="skill-group-title">Backend & Data</div>
+        <div class="skill-tags">
+          <span class="skill-tag hot">Node.js</span>
+          <span class="skill-tag hot">Python</span>
+          <span class="skill-tag">Express</span>
+          <span class="skill-tag">PostgreSQL</span>
+          <span class="skill-tag">MongoDB</span>
+          <span class="skill-tag">REST APIs</span>
+          <span class="skill-tag">JWT Auth</span>
+        </div>
+      </div>
+
+      <div class="skill-group">
+        <div class="skill-group-title">Tools & Workflow</div>
+        <div class="skill-tags">
+          <span class="skill-tag hot">Git / GitHub</span>
+          <span class="skill-tag hot">CLI / Terminal</span>
+          <span class="skill-tag">GitHub Pages</span>
+          <span class="skill-tag">Webhook integrations</span>
+          <span class="skill-tag">EmailJS</span>
+          <span class="skill-tag">Webflow</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── EXPERIENCE ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Experience</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-date">2024 — Present</div>
+      <div>
+        <div class="exp-role">Founder & AI Developer</div>
+        <div class="exp-company">PROVENTO SOLUTIONS · Freelance</div>
+        <ul class="exp-bullets">
+          <li>Built and shipped CVBoost, RecruitLens, and ZAPOSLENIK.AI — all AI-powered tools using Claude API</li>
+          <li>Developed n8n automation workflows and Telegram bot integrations for real-world use cases</li>
+          <li>Managed full project lifecycle end-to-end: scoping, development, deployment, client communication</li>
+          <li>Built premium frontend demos for cold outreach to local businesses (Hotel Park Ivanjica, NEXUS SPA)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-date">2025</div>
+      <div>
+        <div class="exp-role">IT Support Intern</div>
+        <div class="exp-company">IN.SIST D.O.O. · Velenje, Slovenia</div>
+        <ul class="exp-bullets">
+          <li>Networking, hardware/software troubleshooting, internal IT support</li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── EDUCATION ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Education</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="exp-item">
+      <div class="exp-date">2024 — 2026</div>
+      <div>
+        <div class="exp-role">Computer Science & Informatics</div>
+        <div class="exp-company">VIŠJA STROKOVNA ŠOLA VELENJE · ISCED Level 5 · In Progress</div>
+        <ul class="exp-bullets">
+          <li>Full-stack development, databases (PostgreSQL, MongoDB), AI in practice, business economics</li>
+          <li>Built Kanban app (React + Node.js + PostgreSQL), Java Swing plant management app, PL/pgSQL projects</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── LANGUAGES ── -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-title">Languages</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="lang-grid">
+      <div class="lang-card">
+        <div class="lang-name">Serbian</div>
+        <div class="lang-level">Native</div>
+        <div class="lang-bar"><div class="lang-fill" style="width:100%"></div></div>
+      </div>
+      <div class="lang-card">
+        <div class="lang-name">English</div>
+        <div class="lang-level">Professional C1</div>
+        <div class="lang-bar"><div class="lang-fill" style="width:88%"></div></div>
+      </div>
+      <div class="lang-card">
+        <div class="lang-name">Slovenian</div>
+        <div class="lang-level">Professional B2</div>
+        <div class="lang-bar"><div class="lang-fill" style="width:75%"></div></div>
+      </div>
+      <div class="lang-card">
+        <div class="lang-name">Russian</div>
+        <div class="lang-level">Basic A2</div>
+        <div class="lang-bar"><div class="lang-fill" style="width:25%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER CTA ── -->
+  <div class="footer-cta section">
+    <div class="footer-cta-title">Let's build something together.</div>
+    <p class="footer-cta-sub">Applying for AI Engineer — Office of the CEO · Smartcat</p>
+    <a href="https://mail.google.com/mail/?view=cm&to=davidmarkovic952@gmail.com&su=Hi David — Smartcat AI Engineer" target="_blank" class="cta-btn">Get in touch →</a>
+  </div>
+
+</div>
+</body>
+</html>
